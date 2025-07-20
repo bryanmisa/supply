@@ -1,0 +1,44 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Supply Items</h4>
+            <div class="text-right">
+                <a class="btn btn-success float-left" href="{% url 'create_supply_item' %}">+ Create New Supply</a>
+            </div>
+            </ul>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Unit Cost</th>
+                            <th>Status</th>
+                            <!-- Add more headers as needed -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in supply_items %}
+                        <tr>
+                            <td>{{ item.item_id }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>{{ item.unit_cost }}</td>
+                            <td>{{ item.status }}</td>
+                            <!-- Add more data fields as needed -->
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No supply items found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}

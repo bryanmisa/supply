@@ -1,0 +1,81 @@
+{% extends "base/base.html" %}
+{% block content %}
+<div class="col-md-6 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Create a new Supply Item</h4>
+      <p class="card-description"> Register your new supply here </p>
+      <form method="post" enctype="multipart/form-data" class="forms-sample">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="{{ form.item_id.id_for_label }}">Item ID</label>
+          {{ form.item_id }}
+          {{ form.item_id.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.name.id_for_label }}">Name</label>
+          {{ form.name }}
+          {{ form.name.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.description.id_for_label }}">Description</label>
+          {{ form.description }}
+          {{ form.description.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.category.id_for_label }}">Category</label>
+          {{ form.category }}
+          {{ form.category.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.unit_of_measure.id_for_label }}">Unit of Measure</label>
+          {{ form.unit_of_measure }}
+          {{ form.unit_of_measure.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.reorder_level.id_for_label }}">Reorder Level</label>
+          {{ form.reorder_level }}
+          {{ form.reorder_level.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.unit_cost.id_for_label }}">Unit Cost</label>
+          {{ form.unit_cost }}
+          {{ form.unit_cost.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.supplier.id_for_label }}">Supplier</label>
+          {{ form.supplier }}
+          {{ form.supplier.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.status.id_for_label }}">Status</label>
+          {{ form.status }}
+          {{ form.status.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.supply_image.id_for_label }}">Supply Image</label>
+          {{ form.supply_image }}
+          {{ form.supply_image.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.lead_time_days.id_for_label }}">Lead Time (days)</label>
+          {{ form.lead_time_days }}
+          {{ form.lead_time_days.errors }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.expiration_date.id_for_label }}">Expiration Date</label>
+          {{ form.expiration_date }}
+          {{ form.expiration_date.errors }}
+        </div>
+        <div class="form-check form-check-flat form-check-primary">
+          <label class="form-check-label">
+            {{ form.is_active }} Active
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary mr-2">Submit</button>
+        <button type="reset" class="btn btn-dark">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}
