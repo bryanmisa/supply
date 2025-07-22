@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from supply.forms import SupplyItemForm, SupplierProfileForm, UserProfileForm
 from supply.models import SupplyItem
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 
 # Create your views here.
 def dashboard(request):
@@ -26,6 +26,11 @@ class SupplyItemListView(ListView):
     template_name = 'supply/supplyitem_list.html'
     context_object_name = 'supply_items'
 
+class SupplyItemDetailView(DetailView):
+    model = SupplyItem
+    template_name = 'supply/supplyitem_detail.html'
+    context_object_name = 'supply_item' 
+    
 
 def supplier_registration(request):
     if request.method == 'POST':
@@ -47,4 +52,5 @@ def supplier_registration(request):
         user_form = UserProfileForm()
         supplier_form = SupplierProfileForm()
         
-    return render(request, 'supply/supplier_registration.html', {'user_form': user_form, 'supplier_form': supplier_form})
+    return render(request, 'supplier/supplier_registration.html', {'user_form': user_form, 'supplier_form': supplier_form})
+
