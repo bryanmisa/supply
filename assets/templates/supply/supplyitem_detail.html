@@ -41,8 +41,8 @@
             <strong>Supplier:</strong> {{ supply_item.supplier }}
         </p>
         <p><span class="badge bg-info text-uppercase">{{ supply_item.status }}</span></p>
-        <a class="btn btn-success" href="{% url ' supplyitem_transaction_issue' supply_item.id  %}">Issue</a>
-        <a class="btn btn-danger" href="{% url 'supplyitem_transaction_issue' supply_item.id %}">Receive</a>
+        <a class="btn btn-success" href="{% url 'supplyitem_transaction_deliver' supply_item.id  %}">Deliver</a>
+        <a class="btn btn-danger" href="{% url 'supplyitem_transaction_receive' supply_item.id %}">Receive</a>
         </div>
       </div>
     </div>

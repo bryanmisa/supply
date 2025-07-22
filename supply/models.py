@@ -7,6 +7,7 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
         ('supplier', 'Supplier'),
+        ('supply_manager', 'Supply Manager'),
     ]
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='admin')
 
@@ -28,7 +29,15 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
-    
+
+class SupplyManagerProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'supply_manager'})
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return self.user.first_name + ' ' + self.user.last_name
+
 class SupplierProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'supplier'})
     company_name = models.CharField(max_length=255)
@@ -51,6 +60,7 @@ class SupplyItem(models.Model):
 
     item_id = models.CharField(max_length=100, unique=True)  # SKU or barcode
     name = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField(default=0)
     description = models.TextField(blank=True, null=True)
     category = models.CharField(max_length=100)
     unit_of_measure = models.CharField(max_length=50)
@@ -70,13 +80,7 @@ class SupplyItem(models.Model):
         ordering = ['name']
         verbose_name = 'Supply Item'
         verbose_name_plural = 'Supply Items'
-    
-    def update_quantity(self):
-        total_issues = SupplyItemTransaction.objects.filter(supply_item=self, transaction_type='issue').aggregate(total=models.Sum('quantity'))['total']
-        total_receives = SupplyItemTransaction.objects.filter(supply_item=self, transaction_type='receive').aggregate(total=models.Sum('quantity'))['total']
-        self.quantity = total_receives - total_issues
-        self.save()
-    
+
     
     def __str__(self):
         return self.name
@@ -108,7 +112,20 @@ class SupplyItemTransaction(models.Model):
         related_name='approved_transactions'
     )
     
-    
+    def save(self, *args, **kwargs):
+        # On first save only
+        if self.pk is None:
+            if self.transaction_type == 'issue':
+                if self.supply_item.quantity >= self.quantity:
+                    self.supply_item.quantity -= self.quantity
+                else:
+                    raise ValueError("Insufficient stock to issue.")
+            elif self.transaction_type == 'receive':
+                self.supply_item.quantity += self.quantity
+
+            self.supply_item.save()
+        super().save(*args, **kwargs)
+        
     class Meta:
         ordering = ['-transaction_date']
         verbose_name = 'Supply Item Transaction'

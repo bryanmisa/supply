@@ -63,7 +63,7 @@ def supplier_registration(request):
 
 #region SupplyItemTransaction Views
 
-def supplyitem_transaction_issue(request, pk):
+def supplyitem_transaction_deliver(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
     
     if request.method == 'POST':
@@ -87,7 +87,7 @@ def supplyitem_transaction_issue(request, pk):
     })
  
 
-def supplyitem_transaction_received(request, pk):
+def supplyitem_transaction_receive(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
     
     if request.method == 'POST':
