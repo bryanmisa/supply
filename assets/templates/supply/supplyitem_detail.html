@@ -24,7 +24,7 @@
           <p class="text-muted mb-1"><strong>Item ID:</strong> {{ supply_item.item_id }}</p>
           <p class="text-muted"><strong>Category:</strong> {{ supply_item.category }}</p>
           <p class="text-muted"><strong>Unit of Measure:</strong> {{ supply_item.unit_of_measure }}</p>
-          <p><span class="badge bg-info text-uppercase">{{ supply_item.status }}</span></p>
+          
           <p class="text-muted"><strong>Unit Cost:</strong> ${{ supply_item.unit_cost }}</p>
           <p class="text-muted"><strong>Reorder Level:</strong> {{ supply_item.reorder_level }}</p>
           <p class="text-muted"><strong>Lead Time:</strong> {{ supply_item.lead_time_days }} days</p>
@@ -40,6 +40,9 @@
           <p class="text-muted">
             <strong>Supplier:</strong> {{ supply_item.supplier }}
         </p>
+        <p><span class="badge bg-info text-uppercase">{{ supply_item.status }}</span></p>
+        <a class="btn btn-success" href="{% url ' supplyitem_transaction_issue' supply_item.id  %}">Issue</a>
+        <a class="btn btn-danger" href="{% url 'supplyitem_transaction_issue' supply_item.id %}">Receive</a>
         </div>
       </div>
     </div>

@@ -71,7 +71,47 @@ class SupplyItem(models.Model):
         verbose_name = 'Supply Item'
         verbose_name_plural = 'Supply Items'
     
+    def update_quantity(self):
+        total_issues = SupplyItemTransaction.objects.filter(supply_item=self, transaction_type='issue').aggregate(total=models.Sum('quantity'))['total']
+        total_receives = SupplyItemTransaction.objects.filter(supply_item=self, transaction_type='receive').aggregate(total=models.Sum('quantity'))['total']
+        self.quantity = total_receives - total_issues
+        self.save()
+    
+    
     def __str__(self):
         return self.name
 
 
+class SupplyItemTransaction(models.Model):
+    
+    TRANSACTION_TYPE_CHOICES = [
+        ('received', 'Received'),
+        ('issued', 'Issued'),     
+    ]
+    supply_item = models.ForeignKey(SupplyItem, on_delete=models.CASCADE)
+    transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPE_CHOICES)
+    quantity = models.PositiveIntegerField()
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    initiated_by = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='initiated_transactions'
+    )
+    approved_by = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='approved_transactions'
+    )
+    
+    
+    class Meta:
+        ordering = ['-transaction_date']
+        verbose_name = 'Supply Item Transaction'
+        verbose_name_plural = 'Supply Item Transactions'
+        
+        

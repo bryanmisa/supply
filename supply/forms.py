@@ -1,5 +1,5 @@
 from django import forms
-from supply.models import SupplyItem, SupplierProfile, CustomUser
+from supply.models import *
 
 class SupplyItemForm(forms.ModelForm):
     class Meta:
@@ -56,3 +56,15 @@ class SupplierProfileForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Address', 'rows': 3}),
         }
+
+class SupplyItemTransactionForm(forms.ModelForm):
+    class Meta:
+        model = SupplyItemTransaction
+        fields = [
+            'quantity',
+        ]
+        widgets = {
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Quantity'}),
+        }
+        
+        
