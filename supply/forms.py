@@ -1,5 +1,6 @@
 from django import forms
-from supply.models import *
+from django.contrib.auth.forms import AuthenticationForm
+from  supply.models import *
 
 class SupplyItemForm(forms.ModelForm):
     class Meta:
@@ -12,7 +13,7 @@ class SupplyItemForm(forms.ModelForm):
             'unit_of_measure',
             'reorder_level',
             'unit_cost',
-            'supplier',
+            #'supplier',
             'status',
             'supply_image',
             'lead_time_days',
@@ -26,7 +27,7 @@ class SupplyItemForm(forms.ModelForm):
             'unit_of_measure': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Unit of Measure'}),
             'reorder_level': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Reorder Level'}),
             'unit_cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Unit Cost'}),
-            'supplier': forms.Select(attrs={'class': 'form-control'}),
+            # 'supplier': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'supply_image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
             'lead_time_days': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Lead Time (days)'}),
@@ -57,6 +58,15 @@ class SupplierProfileForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Address', 'rows': 3}),
         }
 
+class SupplierSupplyItemsForm(forms.ModelForm):
+    class Meta:
+        model = SupplierProfile
+        fields = ['supply_items']
+        widgets = {
+            'supply_items': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        }
+        
+    
 class SupplyItemTransactionForm(forms.ModelForm):
     class Meta:
         model = SupplyItemTransaction
@@ -66,5 +76,15 @@ class SupplyItemTransactionForm(forms.ModelForm):
         widgets = {
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Quantity'}),
         }
-        
-        
+
+class SupplierLoginForm(forms.Form):
+    username = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
+    password = forms.CharField(max_length=255, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
+
+    class Meta:
+        fields = ('username', 'password')
+
+    def __init__(self, *args, **kwargs):
+        super(SupplierLoginForm, self).__init__(*args, **kwargs)
+        self.fields['username'].label = 'Supplier ID'
+        self.fields['password'].label = 'Password'

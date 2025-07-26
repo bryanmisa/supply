@@ -1,0 +1,34 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2 class="text-center mb-4">Choose Supply Items</h2>
+        <p class="text-muted text-center">Select the items your company can supply.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Company Info (Read-Only) -->
+            <div class="mb-3">
+                <label class="form-label">Company Name</label>
+                <input type="text" class="form-control" value="{{ form.instance.company_name }}" readonly>
+            </div>
+
+            <!-- Supply Items Selection -->
+            <div class="mb-3">
+                <label class="form-label">Available Items</label>
+                <div class="form-check">
+                    {{ form.supply_items }}
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Save Selections</button>
+                <a href="{% url 'supplier_profile_detail' form.instance.pk %}" class="btn btn-secondary">Cancel</a>
+
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

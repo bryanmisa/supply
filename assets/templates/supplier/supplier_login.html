@@ -1,0 +1,18 @@
+{% extends 'base/base_login.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Supplier Login</h2>
+    <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>
+{% endblock %}

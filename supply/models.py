@@ -1,8 +1,9 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 
-# Create your models here.
-
+# ---------------------------------------------------------
+# Custom User Model
+# ---------------------------------------------------------
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
@@ -11,7 +12,7 @@ class CustomUser(AbstractUser):
     ]
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='admin')
 
-    # Override default related_names to avoid conflict
+    # Avoid reverse relation conflicts
     groups = models.ManyToManyField(
         Group,
         related_name='customuser_set',
@@ -30,16 +31,34 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+
+# ---------------------------------------------------------
+# Supply Manager Profile
+# ---------------------------------------------------------
 class SupplyManagerProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'supply_manager'})
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        limit_choices_to={'user_type': 'supply_manager'}
+    )
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return self.user.first_name + ' ' + self.user.last_name
+        return f"{self.user.first_name} {self.user.last_name}"
 
+
+# ---------------------------------------------------------
+# Supplier Profile
+# ---------------------------------------------------------
 class SupplierProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'supplier'})
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        limit_choices_to={'user_type': 'supplier'}
+    )
     company_name = models.CharField(max_length=255)
     contact_person = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -47,9 +66,16 @@ class SupplierProfile(models.Model):
     address = models.TextField(blank=True, null=True)
     approved = models.BooleanField(default=False)
 
+    # New many-to-many relation to SupplyItem
+    supply_items = models.ManyToManyField('SupplyItem', blank=True, related_name='suppliers')
+
     def __str__(self):
         return self.company_name
-    
+
+
+# ---------------------------------------------------------
+# Supply Item
+# ---------------------------------------------------------
 class SupplyItem(models.Model):
 
     STATUS_CHOICES = [
@@ -66,7 +92,11 @@ class SupplyItem(models.Model):
     unit_of_measure = models.CharField(max_length=50)
     reorder_level = models.PositiveIntegerField(default=10)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
-    supplier = models.ForeignKey(SupplierProfile, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # Legacy FK (optional): for single-supplier linkage
+    # supplier = models.ForeignKey(SupplierProfile, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # Status and additional fields
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     supply_image = models.ImageField(upload_to='supply_images/', blank=True, null=True)
     lead_time_days = models.PositiveIntegerField(default=7)
@@ -81,37 +111,40 @@ class SupplyItem(models.Model):
         verbose_name = 'Supply Item'
         verbose_name_plural = 'Supply Items'
 
-    
     def __str__(self):
         return self.name
 
 
+# ---------------------------------------------------------
+# Supply Item Transaction
+# ---------------------------------------------------------
 class SupplyItemTransaction(models.Model):
-    
     TRANSACTION_TYPE_CHOICES = [
         ('received', 'Received'),
-        ('issued', 'Issued'),     
+        ('issued', 'Issued'),
     ]
+
     supply_item = models.ForeignKey(SupplyItem, on_delete=models.CASCADE)
     transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPE_CHOICES)
     quantity = models.PositiveIntegerField()
     transaction_date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     initiated_by = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name='initiated_transactions'
     )
     approved_by = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         related_name='approved_transactions'
     )
-    
+
     def save(self, *args, **kwargs):
         # On first save only
         if self.pk is None:
@@ -125,10 +158,11 @@ class SupplyItemTransaction(models.Model):
 
             self.supply_item.save()
         super().save(*args, **kwargs)
-        
+
     class Meta:
         ordering = ['-transaction_date']
         verbose_name = 'Supply Item Transaction'
         verbose_name_plural = 'Supply Item Transactions'
-        
-        
+
+    def __str__(self):
+        return f"{self.supply_item.name} - {self.transaction_type}" 

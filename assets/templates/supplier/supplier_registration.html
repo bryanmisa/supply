@@ -1,11 +1,11 @@
-{% extends 'base/base.html' %}
+{% extends 'base/base_login.html' %}
 
 {% block content %}
 <div class="container">
     <h2>Supplier Registration</h2>
     <form method="post">
     {% csrf_token %}
-        <h2>User Information</h2>
+
         {{ user_form.as_p }}
         {{ supplier_form.as_p }}
         <button type="submit" class="btn btn-primary">Register</button>
