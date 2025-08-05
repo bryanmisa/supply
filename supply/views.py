@@ -1,11 +1,17 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login,authenticate
-from django.contrib import messages
 
 from datetime import datetime
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login,authenticate
+from django.contrib.auth.views import LoginView
+from django.contrib import messages
+
+from django.views.generic import ListView, DetailView, CreateView
+
+from django.urls import reverse_lazy
 from supply.forms import *
 from supply.models import SupplyItem
-from django.views.generic import ListView, DetailView
+
+
 
 # Create your views here.
 def dashboard(request):
@@ -157,7 +163,6 @@ def supplier_remove_items(request):
     )
 #endregion SupplierViews
 
-
 #region SupplyItemTransaction Views
 
 @permission_required('supply.add_supplyitemtransaction', raise_exception=True)
@@ -210,3 +215,45 @@ def supplyitem_transaction_receive(request, pk):
     })
     
 #endregion SupplyItemTransaction Views
+
+
+#region Supply Manager Views
+
+class SupplyManagerLoginView(LoginView):
+    template_name = 'supply_manager/supply_manager_login.html'
+    form = SupplyManagerLoginForm()
+    success_url = reverse_lazy('supplyitem_list')
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        if self.request.user.is_authenticated:
+            return self.success_url
+        else:
+            return reverse_lazy('supply_manager_login')
+
+    def form_valid(self, form):
+        user = form.get_user()
+        if user.is_supply_manager:
+            return redirect(self.success_url)
+        else:
+            return redirect(reverse_lazy('supply_manager_login'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Supply Manager Login'
+        return context
+
+class SupplyManagerRegistrationView(CreateView):
+    model = SupplyManagerProfile
+    form = SupplyManagerProfileForm()
+    template_name = 'supply_manager/supply_manager_registration.html'
+    success_url = reverse_lazy('supplyitem_list')
+    
+     
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.user_type = 'supply_manager'
+        user.save()
+        messages.success(self.request, 'Supply Manager registered successfully.')
+        return super().form_valid(form)
+#endregion Supply Manager Views

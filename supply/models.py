@@ -70,11 +70,17 @@ class SupplyManagerProfile(models.Model):
         null=True,
         limit_choices_to={'user_type': 'supply_manager'}
     )
-    email = models.EmailField(blank=True, null=True)
-    phone = models.CharField(max_length=50, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
+    
+    first_name = models.CharField(max_length=255, default="")
+    last_name = models.CharField(max_length=255, default="")
+    contact_number = models.CharField(max_length=50, blank=True, null=True)
+    employee_id = models.CharField(max_length=100, unique=True, default="")
+    is_active = models.BooleanField(default=True)
+    
+    
+    
+    # def __str__(self):
+    #     return f"{self.user.first_name} {self.user.last_name}"
 
 
 
