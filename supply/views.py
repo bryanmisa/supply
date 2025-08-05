@@ -14,6 +14,8 @@ def dashboard(request):
     return render(request, 'supply/supplyitem_create.html')
 
 #region SupplyItem Views
+from django.contrib.auth.decorators import permission_required
+
 def create_supply_item(request):
     if request.method == 'POST':
         form = SupplyItemForm(request.POST)
@@ -25,12 +27,16 @@ def create_supply_item(request):
     return render(request, 'supply/supplyitem_create.html', {'form': form})
 
 
-class SupplyItemListView(ListView):
+from django.contrib.auth.mixins import PermissionRequiredMixin
+
+class SupplyItemListView(PermissionRequiredMixin, ListView):
+    permission_required = 'supply.view_supplyitem'
     model = SupplyItem
     template_name = 'supply/supplyitem_list.html'
     context_object_name = 'supply_items'
 
-class SupplyItemDetailView(DetailView):
+class SupplyItemDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = 'supply.view_supplyitem'
     model = SupplyItem
     template_name = 'supply/supplyitem_detail.html'
     context_object_name = 'supply_item' 
@@ -38,6 +44,7 @@ class SupplyItemDetailView(DetailView):
 
 
 #region Supplier Views
+@permission_required('supply.add_supplierprofile', raise_exception=True)
 def supplier_registration(request):
     if request.method == 'POST':
         user_form = UserProfileForm(request.POST)
@@ -77,7 +84,8 @@ def supplier_login(request):
         form = SupplierLoginForm()
     return render(request, 'supplier/supplier_login.html', {'form': form})
 
-class SupplierProfileDetailView(DetailView):
+class SupplierProfileDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = 'supply.can_view_supplier_profile'
     model = SupplierProfile
     template_name = 'supplier/supplier_profile_detail.html'
     context_object_name = 'supplier'
@@ -93,6 +101,7 @@ class SupplierProfileDetailView(DetailView):
 
 
 
+@permission_required('supply.change_supplierprofile', raise_exception=True)
 def supplier_choose_items(request):
     supplier_profile = get_object_or_404(SupplierProfile, user=request.user)
 
@@ -124,6 +133,7 @@ def supplier_choose_items(request):
     )
     
 
+@permission_required('supply.change_supplierprofile', raise_exception=True)
 def supplier_remove_items(request):
     supplier_profile = get_object_or_404(SupplierProfile, user=request.user)
 
@@ -148,10 +158,9 @@ def supplier_remove_items(request):
 #endregion SupplierViews
 
 
-
-
 #region SupplyItemTransaction Views
 
+@permission_required('supply.add_supplyitemtransaction', raise_exception=True)
 def supplyitem_transaction_deliver(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
     
@@ -162,9 +171,9 @@ def supplyitem_transaction_deliver(request, pk):
             transaction.supply_item = supply_item
             transaction.transaction_type = 'issue'
             transaction.transaction_date = datetime.now()
-            transaction.initiated_by = request.user  # uses `related_name='initiated_transactions'
+            transaction.initiated_by = request.user  # uses `related_name='initiated_transactions'`
+            # The quantity is already set by the form, and the model's save() method handles the update
             transaction.save()
-            supply_item.update_quantity()
 
             return redirect('supplyitem_detail', pk=supply_item.pk)
     else:
@@ -176,6 +185,7 @@ def supplyitem_transaction_deliver(request, pk):
     })
  
 
+@permission_required('supply.add_supplyitemtransaction', raise_exception=True)
 def supplyitem_transaction_receive(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
     
@@ -187,6 +197,7 @@ def supplyitem_transaction_receive(request, pk):
             transaction.transaction_type = 'received'
             transaction.transaction_date = datetime.now()
             transaction.initiated_by = request.user  # uses `related_name='initiated_transactions'`
+            # The quantity is already set by the form, so we just need to save
             transaction.save()
 
             return redirect('supplyitem_detail', pk=supply_item.pk)

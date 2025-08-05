@@ -47,3 +47,5 @@ admin.site.register(CustomUser,CustomUserAdmin)
 admin.site.register(SupplyManagerProfile)
 admin.site.register(SupplierProfile)
 admin.site.register(SupplyItem)
+admin.site.register(SupplyItemTransaction)
+

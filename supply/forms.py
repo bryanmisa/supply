@@ -65,7 +65,6 @@ class SupplierSupplyItemsForm(forms.ModelForm):
         widgets = {
             'supply_items': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         }
-        
     
 class SupplyItemTransactionForm(forms.ModelForm):
     class Meta:

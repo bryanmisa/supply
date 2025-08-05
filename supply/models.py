@@ -32,22 +32,6 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-# ---------------------------------------------------------
-# Supply Manager Profile
-# ---------------------------------------------------------
-class SupplyManagerProfile(models.Model):
-    user = models.OneToOneField(
-        CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        limit_choices_to={'user_type': 'supply_manager'}
-    )
-    email = models.EmailField(blank=True, null=True)
-    phone = models.CharField(max_length=50, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
-
 
 # ---------------------------------------------------------
 # Supplier Profile
@@ -71,6 +55,27 @@ class SupplierProfile(models.Model):
 
     def __str__(self):
         return self.company_name
+
+    class Meta:
+        verbose_name = 'Supplier Profile'
+        verbose_name_plural = 'Supplier Profiles'
+
+# ---------------------------------------------------------
+# Supply Manager Profile
+# ---------------------------------------------------------
+class SupplyManagerProfile(models.Model):
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        limit_choices_to={'user_type': 'supply_manager'}
+    )
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
 
 
 # ---------------------------------------------------------
@@ -114,7 +119,6 @@ class SupplyItem(models.Model):
     def __str__(self):
         return self.name
 
-
 # ---------------------------------------------------------
 # Supply Item Transaction
 # ---------------------------------------------------------
@@ -153,7 +157,7 @@ class SupplyItemTransaction(models.Model):
                     self.supply_item.quantity -= self.quantity
                 else:
                     raise ValueError("Insufficient stock to issue.")
-            elif self.transaction_type == 'receive':
+            elif self.transaction_type == 'received':
                 self.supply_item.quantity += self.quantity
 
             self.supply_item.save()
