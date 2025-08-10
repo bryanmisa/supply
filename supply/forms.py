@@ -108,12 +108,10 @@ class SupplyManagerProfileForm(forms.ModelForm):
             'last_name',
             'contact_number',
             'employee_id',
-            'is_active'
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact Number'}),
             'employee_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Employee ID'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }

@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container">
-    <h2>Welcome!</h2>
+    <h2>Welcome Supply Manager!</h2>
     <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
@@ -13,7 +13,8 @@
     {% endif %}
 
     <button type="submit" class="btn btn-primary">Login</button>
-    <button  class="btn btn-warning">Register</button>
+    <a href="{% url 'supplymanager_registration' %}" class="btn btn-warning">Register</a>
+
     </form>
 </div>
 {% endblock %}

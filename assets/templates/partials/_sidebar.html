@@ -57,6 +57,9 @@
               </div>
             </div>
           </li>
+          {% if user.is_authenticated %}
+              <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+          {% endif %}
           <li class="nav-item nav-category">
             <span class="nav-link">Navigation</span>
           </li>

@@ -39,8 +39,7 @@ class CustomUser(AbstractUser):
 class SupplierProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
         limit_choices_to={'user_type': 'supplier'}
     )
     company_name = models.CharField(max_length=255)
@@ -66,21 +65,19 @@ class SupplierProfile(models.Model):
 class SupplyManagerProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
         limit_choices_to={'user_type': 'supply_manager'}
     )
-    
-    first_name = models.CharField(max_length=255, default="")
-    last_name = models.CharField(max_length=255, default="")
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
     contact_number = models.CharField(max_length=50, blank=True, null=True)
-    employee_id = models.CharField(max_length=100, unique=True, default="")
+    employee_id = models.CharField(max_length=50,)
     is_active = models.BooleanField(default=True)
     
     
     
-    # def __str__(self):
-    #     return f"{self.user.first_name} {self.user.last_name}"
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
 
 
 
