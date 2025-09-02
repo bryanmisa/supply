@@ -108,10 +108,37 @@ class SupplyManagerProfileForm(forms.ModelForm):
             'last_name',
             'contact_number',
             'employee_id',
+            'is_active',
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contact Number'}),
             'employee_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Employee ID'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+        
+class CustomerProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomerProfile
+        fields = [
+            'address',
+            'phone_number',
+        ]
+
+        widgets = {
+            'address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Address'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your phone number'}),
+        }
+
+class CustomerLoginForm(forms.Form):
+    username = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
+    password = forms.CharField(max_length=255, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
+
+    class Meta:
+        fields = ('username', 'password')
+
+    def __init__(self, *args, **kwargs):
+        super(CustomerLoginForm, self).__init__(*args, **kwargs)
+        self.fields['username'].label = 'Customer Username'
+        self.fields['password'].label = 'Password'

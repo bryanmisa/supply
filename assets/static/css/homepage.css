@@ -1,0 +1,53 @@
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  margin: 20px;
+  padding: 40px;
+  width: 400px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.card p {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+.card a {
+  text-decoration: none;
+  color: #fff;
+  padding: 20px 40px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.card a:hover {
+  background-color: #333;
+}
+
+.btn-supplier {
+  background-color: #3498db;
+}
+
+.btn-supply-manager {
+  background-color: #f1c40f;
+}
+
+.btn-admin {
+  background-color: #e74c3c;
+}
+
+.btn-customer {
+  background-color: #2ecc71;
+}

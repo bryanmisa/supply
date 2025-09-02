@@ -2,14 +2,13 @@
 
 {% block content %}
 <div class="container">
-    <h2>Supplier Registration</h2>
+    <h2>Welcome Customer!</h2>
     <form method="post">
     {% csrf_token %}
 
         {{ user_form.as_p }}
-        {{ supply_manager_form.as_p }}
+        {{ customer_form.as_p }}
         <button type="submit" class="btn btn-primary">Register</button>
-        
     </form>
 </div>
 {% endblock %}

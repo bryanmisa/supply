@@ -1,0 +1,61 @@
+<!-- filepath: c:\projects\supply\assets\templates\supply_manager\supply_manager_profile_detail.html -->
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2 class="text-center">Supply Manager Profile</h2>
+        </div>
+        <div class="card-body">
+            {% if profile %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>First Name:</strong> {{ profile.first_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Last Name:</strong> {{ profile.last_name }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> {{ request.user.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Contact Number:</strong> {{ request.user.contact_number }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Employee ID:</strong> {{ request.user.employee_id }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Active Status:</strong> 
+                            {% if request.user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Username:</strong> {{ request.user.username }}</p>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{% url 'update_supply_manager_profile' %}" class="btn btn-primary btn-lg">Edit Profile</a>
+                </div>
+            {% else %}
+                <div class="alert alert-danger text-center">
+                    <p>Profile not found. Please create your profile.</p>
+                </div>
+                <div class="text-center">
+                    <a href="{% url 'update_supply_manager_profile' %}" class="btn btn-primary btn-lg">Create Profile</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

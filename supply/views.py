@@ -1,35 +1,67 @@
-
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login,authenticate,logout
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib import messages
+from django.contrib.messages import get_messages
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth import login,authenticate,logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 
-from django.views.generic import ListView, DetailView, CreateView
-
+from django.views.generic import ListView, DetailView, UpdateView, CreateView
 from django.urls import reverse_lazy
 
 from supply.forms import *
-from supply.models import SupplyItem
+from supply.models import *
 
+#region Permissions
 
+def is_supply_manager(user):
+    return user.is_authenticated and user.user_type == 'supply_manager'
 
-# Create your views here.
+def is_supplier(user):
+    return user.is_authenticated and user.user_type == 'supplier'
+
+def is_customer(user):
+    return user.is_authenticated and user.user_type == 'customer'
+
+def handle_permission_denied(request):
+    messages.error(request, "You don't have permission to access this page.")
+    if request.user.is_authenticated:
+        if request.user.user_type == 'supplier':
+            return redirect('supplier_dashboard')
+        elif request.user.user_type == 'customer':
+            return redirect('customer_dashboard')
+        elif request.user.user_type == 'supply_manager':
+            return redirect('supplymanager_dashboard')
+    return redirect('access_denied')
+
+#endregion Permissions
+
+#region HomePage, DashBoard, Logout
 def dashboard(request):
-    """Render the dashboard views
+    """
+    Render the dashboard views
     """
     return render(request, 'supply/supplyitem_create.html')
 
 def home_page(request):
     return render(request, 'home/index.html')
 
-
 def logout_user(request):
     logout(request)
-    return redirect(reverse_lazy('home_page'))
+    storage = messages.get_messages(request)
+    storage.used = True  # Clears all queued messages   
+    return redirect('home_page') 
+
+def access_denied(request):
+    return render(request, 'errors/access_denied.html')
+
+#endregion HomePage, DashBoard, Logout
 
 #region SupplyItem Views
 from django.contrib.auth.decorators import permission_required
 
+@user_passes_test(is_supply_manager)
 @permission_required('supply.add_supplyitem', raise_exception=True)
 def create_supply_item(request):
     if request.method == 'POST':
@@ -42,24 +74,55 @@ def create_supply_item(request):
     return render(request, 'supply/supplyitem_create.html', {'form': form})
 
 
-from django.contrib.auth.mixins import PermissionRequiredMixin
 
-class SupplyItemListView(PermissionRequiredMixin, ListView):
+# For Supply Items
+class SupplyItemListView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin, ListView):
     permission_required = 'supply.view_supplyitem'
     model = SupplyItem
     template_name = 'supply/supplyitem_list.html'
     context_object_name = 'supply_items'
 
-class SupplyItemDetailView(PermissionRequiredMixin, DetailView):
+    def test_func(self):
+        return self.request.user.user_type == 'supply_manager'
+
+    def handle_no_permission(self):
+        return handle_permission_denied(self.request)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['forms'] = {item.id: SupplyItemForm(instance=item) for item in self.get_queryset()}
+        return context
+
+class SupplyItemDetailView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin, DetailView):
     permission_required = 'supply.view_supplyitem'
     model = SupplyItem
     template_name = 'supply/supplyitem_detail.html'
-    context_object_name = 'supply_item' 
+    context_object_name = 'supply_item'
+
+    def test_func(self):
+        return self.request.user.user_type == 'supply_manager'
+
+    def handle_no_permission(self):
+        return handle_permission_denied(self.request)
+
+@user_passes_test(is_supply_manager)
+def edit_supply_item(request, pk):
+    item = get_object_or_404(SupplyItem, pk=pk)
+    if request.method == 'POST':
+        form = SupplyItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Supply item updated successfully!")
+            return redirect('supplyitem_list')
+    else:
+        form = SupplyItemForm(instance=item)
+    return render(request, 'supply/supplyitem_edit.html', {'form': form, 'item': item})
+
+
 #endregion SupplyItem Views   
 
-
 #region Supplier Views
-@permission_required('supply.add_supplierprofile', raise_exception=True)
+#@permission_required('supply.add_supplierprofile', raise_exception=True)
 def supplier_registration(request):
     if request.method == 'POST':
         user_form = UserProfileForm(request.POST)
@@ -84,33 +147,48 @@ def supplier_registration(request):
 
 def supplier_login(request):
     if request.method == 'POST':
-        form = SupplierLoginForm(request.POST)
+        form = SupplierLoginForm(request.POST)  # Ensure you are using the correct form
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
             user = authenticate(request, username=username, password=password)
+
             if user is not None:
-                login(request, user)
-                return redirect('supplier_profile_detail', pk=user.supplierprofile.pk)  # Redirect to supplier profile
+                if user.user_type == 'supplier':
+                    try:
+                        # Check if the SupplierProfile exists
+                        supplier_profile = user.supplierprofile
+                    except ObjectDoesNotExist:
+                        messages.error(request, "Your profile is incomplete. Please contact support.")
+                        return redirect('supplier_registration')  # Redirect to registration or profile creation page
+
+                    login(request, user)
+                    return redirect('supplier_dashboard')  # Redirect to the supplier dashboard
+                else:
+                    messages.error(request, "You are not authorized to log in as a supplier.")
             else:
-                messages.error(request, 'Invalid username or password. Please try again.')
+                messages.error(request, "Invalid username or password.")
     else:
-        form = SupplierLoginForm()
+        form = SupplierLoginForm()  # Initialize an empty form for GET requests
     return render(request, 'supplier/supplier_login.html', {'form': form})
 
-class SupplierProfileDetailView(PermissionRequiredMixin, DetailView):
-    permission_required = 'supply.can_view_supplier_profile'
+# For Supplier Profile
+class SupplierProfileDetailView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin, DetailView):
+    permission_required = 'supply.view_supplierprofile'
     model = SupplierProfile
     template_name = 'supplier/supplier_profile_detail.html'
     context_object_name = 'supplier'
 
+    def test_func(self):
+        return self.request.user.user_type == 'supplier'
+
+    def handle_no_permission(self):
+        return handle_permission_denied(self.request)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Explicitly load supply_items to ensure availability
         supplier = self.object
         context['supply_items'] = supplier.supply_items.all()
-
         return context
 
 @permission_required('supply.change_supplierprofile', raise_exception=True)
@@ -168,8 +246,7 @@ def supplier_remove_items(request):
     )
 #endregion SupplierViews
 
-#region SupplyItemTransaction Views
-
+#region SupplyItemTransaction Views\
 @permission_required('supply.add_supplyitemtransaction', raise_exception=True)
 def supplyitem_transaction_deliver(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
@@ -194,7 +271,6 @@ def supplyitem_transaction_deliver(request, pk):
         'supply_item': supply_item
     })
  
-
 @permission_required('supply.add_supplyitemtransaction', raise_exception=True)
 def supplyitem_transaction_receive(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
@@ -241,7 +317,6 @@ def supply_manager_login(request):
         if user is not None:
             if getattr(user, 'user_type', '') == 'supply_manager':
                 login(request, user)
-                messages.success(request, f"Welcome back, {user.username}! You are now logged in as Supply Manager.")
                 return redirect(success_url)
             else:
                 messages.error(request, f"User '{user.username}' is not authorized as a Supply Manager.")
@@ -258,8 +333,6 @@ def supply_manager_login(request):
     }
     
     return render(request, template_name, context)
-
-
 
 #@permission_required('supply.add_supplymanagerprofile', raise_exception=True)
 def supply_manager_registration(request):
@@ -283,4 +356,111 @@ def supply_manager_registration(request):
         supply_manager_form = SupplyManagerProfileForm()
         
     return render(request, 'supply_manager/supply_manager_registration.html', {'user_form': user_form, 'supply_manager_form': supply_manager_form})
+
+@login_required
+def update_supply_manager_profile(request):
+    try:
+        profile = request.user.supplymanagerprofile
+    except SupplyManagerProfile.DoesNotExist:
+        profile = None
+
+    if request.method == 'POST':
+        form = SupplyManagerProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            supply_manager_profile = form.save(commit=False)
+            supply_manager_profile.user = request.user
+            supply_manager_profile.save()
+            return redirect('supply_manager_profile_detail')  # Redirect to the profile detail page
+    else:
+        form = SupplyManagerProfileForm(instance=profile)
+
+    return render(request, 'supply_manager/update_supply_manager_profile.html', {'form': form})
+
+class SupplyManagerProfileDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = SupplyManagerProfile
+    template_name = 'supply_manager/supply_manager_profile_detail.html'
+    context_object_name = 'profile'
+
+    def test_func(self):
+        return self.request.user.user_type == 'supply_manager'
+
+    def handle_no_permission(self):
+        return handle_permission_denied(self.request)
+
+    def get_object(self, queryset=None):
+        return self.request.user.supplymanagerprofile
+
+class SupplyManagerProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = SupplyManagerProfile
+    form_class = SupplyManagerProfileForm
+    template_name = 'supply_manager/update_supply_manager_profile.html'
+    success_url = reverse_lazy('supply_manager_profile_detail')
+
+    def test_func(self):
+        return self.request.user.user_type == 'supply_manager'
+
+    def handle_no_permission(self):
+        return handle_permission_denied(self.request)
+
+    def get_object(self, queryset=None):
+        return self.request.user.supplymanagerprofile
+
 #endregion Supply Manager Views
+
+#region Customer Views
+
+def customer_login(request):
+    if request.method == 'POST':
+        form = CustomerLoginForm(request.POST)  # Ensure you have this form in forms.py
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                if user.user_type == 'customer':
+                    try:
+                        # Check if the CustomerProfile exists
+                        customer_profile = user.customerprofile
+                    except ObjectDoesNotExist:
+                        messages.error(request, "Your profile is incomplete. Please contact support.")
+                        return redirect('customer_registration')
+
+                    login(request, user)
+                    return redirect('customer_dashboard')
+                else:
+                    messages.error(request, "You are not authorized to log in as a customer.")
+            else:
+                messages.error(request, "Invalid username or password.")
+    else:
+        form = CustomerLoginForm()  # Initialize an empty form for GET requests
+    
+    return render(request, 'customer/customer_login.html', {'form': form})
+
+def customer_registration(request):
+    if request.method == 'POST':
+        user_form = UserProfileForm(request.POST)
+        customer_form = CustomerProfileForm(request.POST)
+        
+        if user_form.is_valid() and customer_form.is_valid():
+            user = user_form.save(commit=False)
+            user.set_password(user_form.cleaned_data['password'])
+            user.user_type = 'customer'
+            user.save()
+            
+            customer_profile = customer_form.save(commit=False)
+            customer_profile.user = user
+            customer_profile.save()
+            
+            messages.success(request, "Registration successful. Please login.")
+            return redirect('customer_login')
+    else:
+        user_form = UserProfileForm()
+        customer_form = CustomerProfileForm()
+        
+    return render(request, 'customer/customer_registration.html', {
+        'user_form': user_form, 
+        'customer_form': customer_form
+    })
+
+#endregion Customer Views

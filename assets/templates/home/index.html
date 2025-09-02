@@ -1,1 +1,70 @@
-<h1>this is the home page</h1>
+{% load static %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Corona Admin</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{% static 'vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendors/css/vendor.bundle.base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/homepage.css' %}">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <!-- endinject -->
+    <!-- Layout styles -->
+    
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" />
+  </head>
+  <body>
+   <h1 class="text-center">Supplies Management System</h1>
+    <div class="container-scroller">
+       
+      <div class="container-fluid page-body-wrapper full-page-wrapper">
+        <div class="row w-100 m-0">
+          <div class="content-wrapper full-page-wrapper d-flex align-items-center auth login-bg">
+             
+           <div class="card-container">
+           
+                <div class="card">
+                    <h2>Supply Manager</h2>
+                    <p>Manage your supplies here.</p>
+                    <a href="{% url 'supplymanager_login' %}" class="btn btn-supply-manager">Login</a>
+                </div>
+
+                <div class="card">
+                    <h2>Supplier</h2>
+                    <p>If you are a supplier. Please login from here.</p>
+                    <a href="{% url 'supplier_login' %}" class="btn btn-supplier">Login</a>
+                </div>
+               
+                <div class="card">
+                    <h2>Admin</h2>
+                    <p>Manage your admin account</p>
+                    <a href="{% url 'admin:index' %}" class="btn btn-admin">Login</a>
+                </div>
+
+                <div class="card">
+                    <h2>Customer</h2>
+                    <p>Manage your customer account</p>
+                    <a href="{% url "customer_login" %}" class="btn btn-customer">Login</a>
+                </div>
+            </div>
+          </div>
+          <!-- content-wrapper ends -->
+        </div>
+        <!-- row ends -->
+      </div>
+      <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    {% include "partials/_scripts.html" %}
+  </body>
+</html>

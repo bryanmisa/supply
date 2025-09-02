@@ -11,64 +11,86 @@
           <li class="nav-item profile">
             <div class="profile-desc">
               <div class="profile-pic">
-                <div class="count-indicator">
-                  <img class="img-xs rounded-circle " src="{% static 'images/faces/face15.jpg' %}" alt="">
-                  <span class="count bg-success"></span>
-                </div>
                 <div class="profile-name">
-                  <h5 class="mb-0 font-weight-normal">Henry Klein</h5>
-                  <span>Gold Member</span>
+                  <span>Welcome!</span>
+                  <h5 class="mb-0 font-weight-normal">{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+
                 </div>
               </div>
               <a href="#" id="profile-dropdown" data-toggle="dropdown"><i class="mdi mdi-dots-vertical"></i></a>
               <div class="dropdown-menu dropdown-menu-right sidebar-dropdown preview-list" aria-labelledby="profile-dropdown">
-                <a href="#" class="dropdown-item preview-item">
+          {% if request.user.user_type == 'supply_manager' %}
+              <a href="{% url 'update_supply_manager_profile' %}" class="dropdown-item preview-item">
+                <div class="preview-thumbnail">
+                  <div class="preview-icon bg-dark rounded-circle">
+                    <i class="mdi mdi-settings text-primary"></i>
+                  </div>
+                </div>
+                <div class="preview-item-content">
+                  <p class="preview-subject ellipsis mb-1 text-small">Update Profile</p>
+                </div>
+              </a>
+              <div class="dropdown-divider"></div>
+            {% elif request.user.user_type == 'supplier' %}
+              <a href="" class="dropdown-item preview-item">
+                <div class="preview-thumbnail">
+                  <div class="preview-icon bg-dark rounded-circle">
+                    <i class="mdi mdi-settings text-primary"></i>
+                  </div>
+                </div>
+                <div class="preview-item-content">
+                  <p class="preview-subject ellipsis mb-1 text-small">Update Profile</p>
+                </div>
+              </a>
+              <div class="dropdown-divider"></div>
+            {% elif request.user.user_type == 'customer' %}
+              <a href="" class="dropdown-item preview-item"> 
+                <div class="preview-thumbnail">
+                  <div class="preview-icon bg-dark rounded-circle">
+                    <i class="mdi mdi-settings text-primary"></i>
+                  </div>
+                </div>
+                <div class="preview-item-content">
+                  <p class="preview-subject ellipsis mb-1 text-small">Update Profile</p>
+                </div>
+              </a>
+            <div class="dropdown-divider"></div>
+            {% endif %}
+
+            <a href="#" class="dropdown-item preview-item">
+              <div class="preview-thumbnail">
+                <div class="preview-icon bg-dark rounded-circle">
+                  <i class="mdi mdi-onepassword text-info"></i>
+                </div>
+              </div>
+              <div class="preview-item-content">
+                <p class="preview-subject ellipsis mb-1 text-small">Change Password</p>
+              </div>
+              
+                {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="dropdown-item preview-item">
                   <div class="preview-thumbnail">
                     <div class="preview-icon bg-dark rounded-circle">
-                      <i class="mdi mdi-settings text-primary"></i>
+                      <i class="mdi mdi-logout text-success"></i>
                     </div>
                   </div>
                   <div class="preview-item-content">
-                    <p class="preview-subject ellipsis mb-1 text-small">Account settings</p>
+                    <p class="preview-subject ellipsis mb-1 text-small">Logout</p>
                   </div>
                 </a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item preview-item">
-                  <div class="preview-thumbnail">
-                    <div class="preview-icon bg-dark rounded-circle">
-                      <i class="mdi mdi-onepassword  text-info"></i>
-                    </div>
-                  </div>
-                  <div class="preview-item-content">
-                    <p class="preview-subject ellipsis mb-1 text-small">Change Password</p>
-                  </div>
-                </a>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item preview-item">
-                  <div class="preview-thumbnail">
-                    <div class="preview-icon bg-dark rounded-circle">
-                      <i class="mdi mdi-calendar-today text-success"></i>
-                    </div>
-                  </div>
-                  <div class="preview-item-content">
-                    <p class="preview-subject ellipsis mb-1 text-small">To-do list</p>
-                  </div>
-                </a>
+                {% endif %}
               </div>
             </div>
           </li>
-          {% if user.is_authenticated %}
-              <a href="{% url 'logout' %}" class="nav-link">Logout</a>
-          {% endif %}
           <li class="nav-item nav-category">
             <span class="nav-link">Navigation</span>
           </li>
           <li class="nav-item menu-items">
             <a class="nav-link" href="../../index.html">
               <span class="menu-icon">
-                <i class="mdi mdi-speedometer"></i>
+                <i class="mdi mdi-chip"></i>
               </span>
-              <span class="menu-title">Dashboard</span>
+              <span class="menu-title">Supply Transactions</span>
             </a>
           </li>
           <li class="nav-item menu-items">

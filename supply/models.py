@@ -9,6 +9,7 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin'),
         ('supplier', 'Supplier'),
         ('supply_manager', 'Supply Manager'),
+        ('customer', 'Customer'),
     ]
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='admin')
 
@@ -31,8 +32,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-
-
 # ---------------------------------------------------------
 # Supplier Profile
 # ---------------------------------------------------------
@@ -40,7 +39,7 @@ class SupplierProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        limit_choices_to={'user_type': 'supplier'}
+        limit_choices_to={'user_type': 'supplier'}, default=None
     )
     company_name = models.CharField(max_length=255)
     contact_person = models.CharField(max_length=255, blank=True, null=True)
@@ -66,7 +65,7 @@ class SupplyManagerProfile(models.Model):
     user = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        limit_choices_to={'user_type': 'supply_manager'}
+        limit_choices_to={'user_type': 'supply_manager'},  default=None
     )
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -78,8 +77,6 @@ class SupplyManagerProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
-
-
 
 # ---------------------------------------------------------
 # Supply Item
@@ -173,3 +170,14 @@ class SupplyItemTransaction(models.Model):
 
     def __str__(self):
         return f"{self.supply_item.name} - {self.transaction_type}" 
+
+
+class CustomerProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'customer'}, default=None)
+    address = models.TextField()
+    phone_number = models.CharField(max_length=50, blank=True, null=True)
+    date_registered = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"

@@ -1,0 +1,60 @@
+<!-- filepath: c:\projects\supply\assets\templates\supply_manager\update_supply_manager_profile.html -->
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2 class="text-center">Update Supply Manager Profile</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_first_name" class="form-label"><strong>First Name</strong></label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_last_name" class="form-label"><strong>Last Name</strong></label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_contact_number" class="form-label"><strong>Contact Number</strong></label>
+                        {{ form.contact_number }}
+                        {% if form.contact_number.errors %}
+                            <div class="text-danger">{{ form.contact_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_employee_id" class="form-label"><strong>Employee ID</strong></label>
+                        {{ form.employee_id }}
+                        {% if form.employee_id.errors %}
+                            <div class="text-danger">{{ form.employee_id.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.is_active }}
+                    <label for="id_is_active" class="form-check-label"><strong>Active</strong></label>
+                    {% if form.is_active.errors %}
+                        <div class="text-danger">{{ form.is_active.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                    <a href="{% url 'supply_manager_profile_detail' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
