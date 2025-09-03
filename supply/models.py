@@ -97,10 +97,6 @@ class SupplyItem(models.Model):
     unit_of_measure = models.CharField(max_length=50)
     reorder_level = models.PositiveIntegerField(default=10)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
-
-    # Legacy FK (optional): for single-supplier linkage
-    # supplier = models.ForeignKey(SupplierProfile, on_delete=models.SET_NULL, null=True, blank=True)
-
     # Status and additional fields
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     supply_image = models.ImageField(upload_to='supply_images/', blank=True, null=True)

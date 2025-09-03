@@ -1,0 +1,23 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<h2>Active Supply Items</h2>
+<ul>
+    {% for item in supply_items %}
+        <li>
+            <strong>{{ item.name }}</strong>
+            <br>
+            Suppliers:
+            <ul>
+                {% for supplier in item.suppliers.all %}
+                    <li>{{ supplier.name }}</li>
+                {% empty %}
+                    <li>No suppliers available</li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% empty %}
+        <li>No active supply items available.</li>
+    {% endfor %}
+</ul>
+{% endblock content %}
