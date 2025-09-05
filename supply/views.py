@@ -477,21 +477,29 @@ def customer_requestable_supply(request):
 @login_required
 @user_passes_test(is_customer)
 def request_supply_item(request, item_id):
-    supply_item = get_object_or_404(SupplyItem, id=item_id, status='active')
     if request.method == 'POST':
-        quantity = request.POST.get('quantity')
-        if quantity and int(quantity) > 0:
-            # Create a transaction/request (adjust model as needed)
-            SupplyItemTransaction.objects.create(
-                customer=request.user.customerprofile,
-                supply_item=supply_item,
-                quantity=quantity,
-                status='requested'
-            )
-            messages.success(request, f'Request for {supply_item.name} submitted!')
+        supply_item = get_object_or_404(SupplyItem, id=item_id)
+        requested_quantity = int(request.POST.get('quantity', 0))
+        
+        # Validate quantity
+        if requested_quantity <= 0:
+            messages.error(request, "Please enter a valid quantity.")
             return redirect('customer_requestable_supply')
-        else:
-            messages.error(request, 'Please enter a valid quantity.')
+            
+        if requested_quantity > supply_item.quantity:
+            messages.error(request, "Requested quantity exceeds available stock.")
+            return redirect('customer_requestable_supply')
+            
+        # Create the supply request
+        SupplyItemRequest.objects.create(
+            supply_item=supply_item,
+            customer=request.user.customerprofile,
+            quantity=requested_quantity
+        )
+        
+        messages.success(request, "Supply request submitted successfully.")
+        return redirect('customer_requestable_supply')
+        
     return redirect('customer_requestable_supply')
 
 

@@ -78,6 +78,18 @@ class SupplyManagerProfile(models.Model):
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
 
+
+class CustomerProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'customer'}, default=None)
+    address = models.TextField()
+    phone_number = models.CharField(max_length=50, blank=True, null=True)
+    date_registered = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
+
 # ---------------------------------------------------------
 # Supply Item
 # ---------------------------------------------------------
@@ -119,61 +131,45 @@ class SupplyItem(models.Model):
 # Supply Item Transaction
 # ---------------------------------------------------------
 class SupplyItemTransaction(models.Model):
-    TRANSACTION_TYPE_CHOICES = [
-        ('received', 'Received'),
-        ('issued', 'Issued'),
+    TRANSACTION_TYPES = [
+        ('REQUEST', 'Request'),
+        ('DELIVERY', 'Delivery'),
+        ('RETURN', 'Return')
+    ]
+    
+    TRANSACTION_STATUS = [
+        ('NEW', 'New Request'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled')
     ]
 
     supply_item = models.ForeignKey(SupplyItem, on_delete=models.CASCADE)
-    transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPE_CHOICES)
+    customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE,  default=None, null=True)
     quantity = models.PositiveIntegerField()
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    status = models.CharField(max_length=20, choices=TRANSACTION_STATUS, default='NEW')
     transaction_date = models.DateTimeField(auto_now_add=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    initiated_by = models.ForeignKey(
-        CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='initiated_transactions'
-    )
-    approved_by = models.ForeignKey(
-        CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='approved_transactions'
-    )
-
-    def save(self, *args, **kwargs):
-        # On first save only
-        if self.pk is None:
-            if self.transaction_type == 'issue':
-                if self.supply_item.quantity >= self.quantity:
-                    self.supply_item.quantity -= self.quantity
-                else:
-                    raise ValueError("Insufficient stock to issue.")
-            elif self.transaction_type == 'received':
-                self.supply_item.quantity += self.quantity
-
-            self.supply_item.save()
-        super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ['-transaction_date']
-        verbose_name = 'Supply Item Transaction'
-        verbose_name_plural = 'Supply Item Transactions'
 
     def __str__(self):
-        return f"{self.supply_item.name} - {self.transaction_type}" 
+        return f"{self.transaction_type} - {self.supply_item.name}" 
 
 
-class CustomerProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'user_type': 'customer'}, default=None)
-    address = models.TextField()
-    phone_number = models.CharField(max_length=50, blank=True, null=True)
-    date_registered = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
+
+class SupplyItemRequest(models.Model):
+    supply_item = models.ForeignKey(SupplyItem, on_delete=models.CASCADE)
+    customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, default=None, null=True)
+    quantity = models.PositiveIntegerField()
+    request_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('PENDING', 'Pending'),
+            ('APPROVED', 'Approved'),
+            ('REJECTED', 'Rejected')
+        ],
+        default='PENDING'
+    )
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
+        return f"Request for {self.supply_item.name} by {self.customer.user.username}"

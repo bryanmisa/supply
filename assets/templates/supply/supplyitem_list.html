@@ -19,6 +19,7 @@
                             <th>Name</th>
                             <th>Category</th>
                             <th>Unit Cost</th>
+                            <th>Quantity</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -27,9 +28,10 @@
                         {% for item in supply_items %}
                         <tr>
                             <td>{{ item.item_id }}</td>
-                            <td>{{ item.name }}</td>
+                            <td><a href="{% url "supplyitem_detail" item.id %}">{{ item.name }}</a></td>
                             <td>{{ item.category }}</td>
                             <td>${{ item.unit_cost|floatformat:2 }}</td>
+                             <td>{{ item.quantity }}</td>
                             <td>
                                 {% if item.status == 'active' %}
                                     <span class="badge badge-success">Active</span>
@@ -41,6 +43,7 @@
                                     <span class="badge badge-secondary">{{ item.status }}</span>
                                 {% endif %}
                             </td>
+                           
                             <td>
                                 <button 
                                     class="btn btn-sm btn-primary" 
