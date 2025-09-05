@@ -473,4 +473,26 @@ def customer_requestable_supply(request):
         'supply_items': supply_items
     })
 
+
+@login_required
+@user_passes_test(is_customer)
+def request_supply_item(request, item_id):
+    supply_item = get_object_or_404(SupplyItem, id=item_id, status='active')
+    if request.method == 'POST':
+        quantity = request.POST.get('quantity')
+        if quantity and int(quantity) > 0:
+            # Create a transaction/request (adjust model as needed)
+            SupplyItemTransaction.objects.create(
+                customer=request.user.customerprofile,
+                supply_item=supply_item,
+                quantity=quantity,
+                status='requested'
+            )
+            messages.success(request, f'Request for {supply_item.name} submitted!')
+            return redirect('customer_requestable_supply')
+        else:
+            messages.error(request, 'Please enter a valid quantity.')
+    return redirect('customer_requestable_supply')
+
+
 #endregion Customer Views
