@@ -28,11 +28,11 @@ def handle_permission_denied(request):
     messages.error(request, "You don't have permission to access this page.")
     if request.user.is_authenticated:
         if request.user.user_type == 'supplier':
-            return redirect('supplier_dashboard')
+            return redirect('supplier_choose_items')
         elif request.user.user_type == 'customer':
-            return redirect('customer_dashboard')
+            return redirect('customer_requestable_supply')
         elif request.user.user_type == 'supply_manager':
-            return redirect('supplymanager_dashboard')
+            return redirect('supplyitem_list')
     return redirect('access_denied')
 
 #endregion Permissions
@@ -163,7 +163,7 @@ def supplier_login(request):
                         return redirect('supplier_registration')  # Redirect to registration or profile creation page
 
                     login(request, user)
-                    return redirect('supplier_dashboard')  # Redirect to the supplier dashboard
+                    return redirect('supplier_choose_items')  # Redirect to the supplier dashboard
                 else:
                     messages.error(request, "You are not authorized to log in as a supplier.")
             else:
@@ -191,7 +191,9 @@ class SupplierProfileDetailView(LoginRequiredMixin, UserPassesTestMixin, Permiss
         context['supply_items'] = supplier.supply_items.all()
         return context
 
-@permission_required('supply.change_supplierprofile', raise_exception=True)
+@login_required
+@user_passes_test(is_supplier)
+#@permission_required('supply.change_supplierprofile', raise_exception=True)
 def supplier_choose_items(request):
     supplier_profile = get_object_or_404(SupplierProfile, user=request.user)
 
@@ -427,7 +429,7 @@ def customer_login(request):
                         return redirect('customer_registration')
 
                     login(request, user)
-                    return redirect('customer_dashboard')
+                    return redirect('customer_requestable_supply')
                 else:
                     messages.error(request, "You are not authorized to log in as a customer.")
             else:
@@ -462,5 +464,35 @@ def customer_registration(request):
         'user_form': user_form, 
         'customer_form': customer_form
     })
+
+@login_required
+@user_passes_test(is_customer)
+def customer_requestable_supply(request):
+    supply_items = SupplyItem.objects.filter(status='active').prefetch_related('suppliers')
+    return render(request, 'customer/customer_requestable_supply.html', {
+        'supply_items': supply_items
+    })
+
+
+@login_required
+@user_passes_test(is_customer)
+def request_supply_item(request, item_id):
+    supply_item = get_object_or_404(SupplyItem, id=item_id, status='active')
+    if request.method == 'POST':
+        quantity = request.POST.get('quantity')
+        if quantity and int(quantity) > 0:
+            # Create a transaction/request (adjust model as needed)
+            SupplyItemTransaction.objects.create(
+                customer=request.user.customerprofile,
+                supply_item=supply_item,
+                quantity=quantity,
+                status='requested'
+            )
+            messages.success(request, f'Request for {supply_item.name} submitted!')
+            return redirect('customer_requestable_supply')
+        else:
+            messages.error(request, 'Please enter a valid quantity.')
+    return redirect('customer_requestable_supply')
+
 
 #endregion Customer Views
