@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 
 # ---------------------------------------------------------
-# Custom User Model
+#region Custom User Model
 # ---------------------------------------------------------
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = [
@@ -33,7 +33,7 @@ class CustomUser(AbstractUser):
         return self.username
 
 # ---------------------------------------------------------
-# Supplier Profile
+#region Supplier Profile
 # ---------------------------------------------------------
 class SupplierProfile(models.Model):
     user = models.OneToOneField(
@@ -59,7 +59,7 @@ class SupplierProfile(models.Model):
         verbose_name_plural = 'Supplier Profiles'
 
 # ---------------------------------------------------------
-# Supply Manager Profile
+#region Supply Manager Profile
 # ---------------------------------------------------------
 class SupplyManagerProfile(models.Model):
     user = models.OneToOneField(
@@ -91,7 +91,7 @@ class CustomerProfile(models.Model):
 
 
 # ---------------------------------------------------------
-# Supply Item
+#region Supply Item
 # ---------------------------------------------------------
 class SupplyItem(models.Model):
 
@@ -128,13 +128,13 @@ class SupplyItem(models.Model):
         return self.name
 
 # ---------------------------------------------------------
-# Supply Item Transaction
+#region Supply Item Transaction
 # ---------------------------------------------------------
 class SupplyItemTransaction(models.Model):
     TRANSACTION_TYPES = [
-        ('REQUEST', 'Request'),
-        ('DELIVERY', 'Delivery'),
-        ('RETURN', 'Return')
+        ('REQUESTED', 'Requested'),   # requested by customer
+        ('DELIVERY', 'Delivery'), # delivery from supplier to supply manager
+        ('RETURN', 'Return')      # returned by customer to supply manager or supply manager to supplier
     ]
     
     TRANSACTION_STATUS = [
@@ -155,7 +155,9 @@ class SupplyItemTransaction(models.Model):
         return f"{self.transaction_type} - {self.supply_item.name}" 
 
 
-
+# ---------------------------------------------------------
+#region Supply Item Requests
+# ---------------------------------------------------------
 class SupplyItemRequest(models.Model):
     supply_item = models.ForeignKey(SupplyItem, on_delete=models.CASCADE)
     customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, default=None, null=True)

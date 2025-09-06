@@ -1,42 +1,97 @@
 {% extends "base/base.html" %}
-{% load static %}
+
 {% block content %}
-<div class="container">
-    <h2 class="text-start mb-5">Issue Supply </h2>
-    <form method="post">
-    {% csrf_token %}
-        <div class="col-md-8  text-start">
-            
-            {% if supply_item.supply_image %}
-                <img src="{{ supply_item.supply_image.url }}" alt="{{ supply_item.name }}" class="img-fluid rounded" style="max-height: 200px;">
-            {% else %}
-                <img src="{% static 'images/default-supply.png' %}" alt="No image" class="img-fluid rounded" style="max-height: 200px;">
-            {% endif %}
-
-        
-            <p class="text-muted mt-5 mb-3"><strong>Supply Item Name:</strong> {{ supply_item.name }}</p>
-            <p class="text-muted mb-3"><strong>Item ID:</strong> {{ supply_item.item_id }}</p>
-            <p class="text-muted mb-3"><strong>Category:</strong> {{ supply_item.category }}</p>
-            <p class="text-muted mb-3"><strong>Unit of Measure:</strong> {{ supply_item.unit_of_measure }}</p>
-            <p class="text-muted mb-3"><strong>Total Quantity:</strong> {{ supply_item.quantity }}</p>
-            <p class="text-muted mb-3"><strong>Unit Cost:</strong> ${{ supply_item.unit_cost }}</p>
-            <p class="text-muted mb-3"><strong>Reorder Level:</strong> {{ supply_item.reorder_level }}</p>
-            <p class="text-muted mb-3"><strong>Lead Time:</strong> {{ supply_item.lead_time_days }} days</p>
-            {% if supply_item.expiration_date %}
-                <p class="text-muted mb-3"><strong>Expiration Date:</strong> {{ supply_item.expiration_date }}</p>
-            {% endif %}
-            <p class="text-muted mb-3"><strong>Date Added:</strong> {{ supply_item.date_added|date:"M d, Y" }}</p>
-            <p class="text-muted mb-3">
-                <strong>Description:</strong> {{ supply_item.description|default:"No description available." }}
-            </p>
-            <p class="text-muted mb-3">
-                <strong>Supplier:</strong> {{ supply_item.supplier }}
-            </p>
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Submit</button>
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">Supply Item Transactions</h3>
         </div>
+        <div class="card-body">
+            {% if transactions %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Transaction Date</th>
+                                <th>Supply Item</th>
+                                <th>Customer</th>
+                                <th>Quantity</th>
+                                <th>Transaction Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.transaction_date|date:"F d, Y H:i" }}</td>
+                                    <td>{{ transaction.supply_item.name }}</td>
+                                    <td>{{ transaction.customer.user.get_full_name }}</td>
+                                    <td>{{ transaction.quantity }}</td>
+                                    <td>
+                                        <span class="badge 
+                                                    {% if transaction.transaction_type == 'REQUEST' %}    bg-info text-white
+                                                     {% elif transaction.transaction_type == 'DELIVERY' %}bg-success text-white
+                                                     {% elif transaction.transaction_type == 'RETURN' %}bg-warning text-white
+                                                     {% endif %}">
+                                            {{ transaction.transaction_type }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                                     {% if transaction.status == 'NEW' %}
+                                                     bg-info text-white
+                                                     {% elif transaction.status == 'PROCESSING' %}bg-primary text-white
+                                                     {% elif transaction.status == 'COMPLETED' %}bg-success text-white
+                                                     {% elif transaction.status == 'CANCELLED' %}
+                                                     bg-danger text-white
+                                                     {% endif %}">
+                                            {{ transaction.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if transaction.status == 'NEW' %}
+                                            <button class="btn btn-sm btn-success" 
+                                                    {% comment %} onclick="window.location.href='{% url 'process_transaction' transaction.id %}'"> {% endcomment %}
+                                                Process
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
 
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
 
-    </form>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    No transactions found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

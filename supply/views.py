@@ -1,17 +1,35 @@
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from django.contrib.messages import get_messages
+
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import login,authenticate,logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import permission_required
 
-from django.views.generic import ListView, DetailView, UpdateView, CreateView
+from django.views.generic import ListView, DetailView, UpdateView
 from django.urls import reverse_lazy
 
-from supply.forms import *
-from supply.models import *
+from supply.forms import (
+    SupplyItemForm,
+    SupplierProfileForm,
+    SupplierSupplyItemsForm,
+    SupplierLoginForm,
+    SupplyItemTransactionForm,
+    UserProfileForm,
+    SupplyManagerProfileForm,
+    SupplyManagerLoginForm,
+    CustomerProfileForm,
+    CustomerLoginForm
+)
+from supply.models import (
+    SupplyItem, 
+    SupplierProfile, 
+    SupplyManagerProfile, 
+    SupplyItemRequest, 
+    SupplyItemTransaction,
+    )
 
 #region Permissions
 
@@ -59,7 +77,7 @@ def access_denied(request):
 #endregion HomePage, DashBoard, Logout
 
 #region SupplyItem Views
-from django.contrib.auth.decorators import permission_required
+
 
 @user_passes_test(is_supply_manager)
 @permission_required('supply.add_supplyitem', raise_exception=True)
@@ -72,7 +90,6 @@ def create_supply_item(request):
     else:
         form = SupplyItemForm()
     return render(request, 'supply/supplyitem_create.html', {'form': form})
-
 
 
 # For Supply Items
@@ -248,7 +265,7 @@ def supplier_remove_items(request):
     )
 #endregion SupplierViews
 
-#region SupplyItemTransaction Views\
+#region SupplyItemTransaction Views
 @permission_required('supply.add_supplyitemtransaction', raise_exception=True)
 def supplyitem_transaction_deliver(request, pk):
     supply_item = get_object_or_404(SupplyItem, pk=pk)
@@ -297,6 +314,23 @@ def supplyitem_transaction_receive(request, pk):
         'supply_item': supply_item
     })
     
+class SupplyItemTransactionListView(LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin, ListView):
+    permission_required = 'supply.view_supplyitemtransaction'
+    model = SupplyItemTransaction
+    template_name = 'supply/supplyitem_transaction.html'
+    context_object_name = 'transactions'
+
+    def test_func(self):
+        return self.request.user.user_type == 'supply_manager'
+
+    def handle_no_permission(self):
+        return handle_permission_denied(self.request)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['forms'] = {item.id: SupplyItemTransactionForm(instance=item) for item in self.get_queryset()}
+        return context
+
 #endregion SupplyItemTransaction Views
 
 #region Supply Manager Views
@@ -409,8 +443,9 @@ class SupplyManagerProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, Up
 
 #endregion Supply Manager Views
 
+# ---------------------
 #region Customer Views
-
+# ---------------------
 def customer_login(request):
     if request.method == 'POST':
         form = CustomerLoginForm(request.POST)  # Ensure you have this form in forms.py
@@ -465,6 +500,12 @@ def customer_registration(request):
         'customer_form': customer_form
     })
 
+#endregion Customer Views
+
+# ------------------------------------
+#region Customer Supply Request Views
+# -----------------------------------
+
 @login_required
 @user_passes_test(is_customer)
 def customer_requestable_supply(request):
@@ -480,6 +521,7 @@ def request_supply_item(request, item_id):
     if request.method == 'POST':
         supply_item = get_object_or_404(SupplyItem, id=item_id)
         requested_quantity = int(request.POST.get('quantity', 0))
+
         
         # Validate quantity
         if requested_quantity <= 0:
@@ -494,13 +536,27 @@ def request_supply_item(request, item_id):
         SupplyItemRequest.objects.create(
             supply_item=supply_item,
             customer=request.user.customerprofile,
-            quantity=requested_quantity
+            quantity=requested_quantity,
+
         )
         
         messages.success(request, "Supply request submitted successfully.")
         return redirect('customer_requestable_supply')
         
     return redirect('customer_requestable_supply')
+
+class CustomerSupplyRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = SupplyItemRequest
+    template_name = 'customer/customer_supply_request/customer_supply_request.html'
+    context_object_name = 'supply_requests'
+    
+    def test_func(self):
+        return self.request.user.user_type == 'customer'
+    
+    def get_queryset(self):
+        return SupplyItemRequest.objects.filter(
+            customer=self.request.user.customerprofile
+        ).order_by('-request_date')
 
 
 #endregion Customer Views

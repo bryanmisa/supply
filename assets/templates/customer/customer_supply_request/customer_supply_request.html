@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <!-- ...existing header code... -->
+        <div class="card-body">
+            {% if supply_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Request Date</th>
+                                <th>Supply Item</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                                <th>Transaction Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in supply_requests %}
+                                <tr>
+                                    <td>{{ request.request_date|date:"F d, Y H:i" }}</td>
+                                    <td>{{ request.supply_item.name }}</td>
+                                    <td>{{ request.quantity }}</td>
+                                    <td>
+                                        <span class="badge {% if request.status == 'PENDING' %}bg-warning
+                                                     {% elif request.status == 'APPROVED' %}bg-success
+                                                     {% elif request.status == 'REJECTED' %}bg-danger
+                                                     {% endif %}">
+                                            {{ request.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if request.status == 'NEW' %}bg-info
+                                                        {% elif request.status == 'PROCESSING' %}bg-primary
+                                                        {% elif request.status == 'COMPLETED' %}bg-success
+                                                        {% elif request.status == 'CANCELLED' %}bg-danger
+                                                        {% else %}bg-secondary{% endif %}">
+                                            {{ request.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    You haven't made any supply requests yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
