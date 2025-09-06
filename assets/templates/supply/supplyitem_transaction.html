@@ -18,7 +18,6 @@
                                 <th>Quantity</th>
                                 <th>Transaction Type</th>
                                 <th>Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -48,14 +47,6 @@
                                                      {% endif %}">
                                             {{ transaction.status }}
                                         </span>
-                                    </td>
-                                    <td>
-                                        {% if transaction.status == 'NEW' %}
-                                            <button class="btn btn-sm btn-success" 
-                                                    {% comment %} onclick="window.location.href='{% url 'process_transaction' transaction.id %}'"> {% endcomment %}
-                                                Process
-                                            </button>
-                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}

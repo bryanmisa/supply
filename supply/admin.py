@@ -49,4 +49,5 @@ admin.site.register(SupplierProfile)
 admin.site.register(SupplyItem)
 admin.site.register(SupplyItemTransaction)
 admin.site.register(CustomerProfile)
+admin.site.register(SupplyItemRequest)
 

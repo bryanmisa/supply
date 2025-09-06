@@ -135,7 +135,6 @@ def edit_supply_item(request, pk):
         form = SupplyItemForm(instance=item)
     return render(request, 'supply/supplyitem_edit.html', {'form': form, 'item': item})
 
-
 #endregion SupplyItem Views   
 
 #region Supplier Views
@@ -319,7 +318,7 @@ class SupplyItemTransactionListView(LoginRequiredMixin, UserPassesTestMixin, Per
     model = SupplyItemTransaction
     template_name = 'supply/supplyitem_transaction.html'
     context_object_name = 'transactions'
-
+    paginate_by = 10 #Add this line to limit to 5 items per page
     def test_func(self):
         return self.request.user.user_type == 'supply_manager'
 
@@ -337,7 +336,7 @@ class SupplyItemTransactionListView(LoginRequiredMixin, UserPassesTestMixin, Per
 
 def supply_manager_login(request):
     template_name = 'supply_manager/supply_manager_login.html'
-    success_url = reverse_lazy('supplyitem_list')
+    success_url = reverse_lazy('supply:supplyitem_list')
 
     # Redirect authenticated user
     if request.user.is_authenticated:
@@ -356,10 +355,10 @@ def supply_manager_login(request):
                 return redirect(success_url)
             else:
                 messages.error(request, f"User '{user.username}' is not authorized as a Supply Manager.")
-                return redirect(reverse_lazy('supplymanager_login'))
+                return redirect(reverse_lazy('supply:supplymanager_login'))
         else:
             messages.error(request, "Invalid username or password.")
-            return redirect(reverse_lazy('supplymanager_login'))
+            return redirect(reverse_lazy('supply:supplymanager_login'))
     else:
         form = SupplyManagerLoginForm()
 
@@ -441,6 +440,90 @@ class SupplyManagerProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, Up
     def get_object(self, queryset=None):
         return self.request.user.supplymanagerprofile
 
+@login_required
+@user_passes_test(is_supply_manager)
+def approve_request(request, pk):
+    """Approve a supply request and update transaction"""
+    supply_request = get_object_or_404(SupplyItemRequest, pk=pk)
+    
+    if supply_request.status != 'PENDING':
+        messages.error(request, "This request cannot be approved because it's not in pending status.")
+        return redirect('supply:customer_pending_requests')
+    
+    try:
+        # Update the request status
+        supply_request.status = 'APPROVED'
+        supply_request.save()
+        
+        # Update or create the corresponding transaction
+        transaction = SupplyItemTransaction.objects.get(
+            supply_item=supply_request.supply_item,
+            customer=supply_request.customer,
+            transaction_type='REQUEST'
+        )
+        transaction.status = 'PROCESSING'
+        transaction.save()
+        
+        messages.success(request, f"Request for {supply_request.supply_item.name} has been approved.")
+    except Exception as e:
+        messages.error(request, f"Error processing approval: {str(e)}")
+    
+    return redirect('supply:customer_pending_requests')
+
+@login_required
+@user_passes_test(is_supply_manager)
+def reject_request(request, pk):
+    """Reject a supply request and update transaction"""
+    supply_request = get_object_or_404(SupplyItemRequest, pk=pk)
+    
+    if supply_request.status != 'PENDING':
+        messages.error(request, "This request cannot be rejected because it's not in pending status.")
+        return redirect('supply:customer_pending_requests')
+    
+    try:
+        # Update the request status
+        supply_request.status = 'REJECTED'
+        supply_request.save()
+        
+        # Update the corresponding transaction
+        transaction = SupplyItemTransaction.objects.get(
+            supply_item=supply_request.supply_item,
+            customer=supply_request.customer,
+            transaction_type='REQUEST'
+        )
+        transaction.status = 'CANCELLED'
+        transaction.save()
+        
+        # Return the quantity back to supply item
+        supply_item = supply_request.supply_item
+        supply_item.quantity += supply_request.quantity
+        supply_item.save()
+        
+        messages.success(request, f"Request for {supply_request.supply_item.name} has been rejected.")
+    except Exception as e:
+        messages.error(request, f"Error processing rejection: {str(e)}")
+    
+    return redirect('supply:customer_pending_requests')
+
+@login_required
+@user_passes_test(is_supply_manager)
+def complete_transaction(request, pk):
+    """Mark a transaction as completed after delivery"""
+    transaction = get_object_or_404(SupplyItemTransaction, pk=pk)
+    
+    if transaction.status != 'PROCESSING':
+        messages.error(request, "This transaction cannot be completed because it's not in processing status.")
+        return redirect('transaction_list')
+    
+    try:
+        transaction.status = 'COMPLETED'
+        transaction.save()
+        
+        messages.success(request, f"Transaction for {transaction.supply_item.name} has been completed.")
+    except Exception as e:
+        messages.error(request, f"Error completing transaction: {str(e)}")
+    
+    return redirect('transaction_list')
 #endregion Supply Manager Views
 
 # ---------------------
@@ -558,5 +641,16 @@ class CustomerSupplyRequestListView(LoginRequiredMixin, UserPassesTestMixin, Lis
             customer=self.request.user.customerprofile
         ).order_by('-request_date')
 
-
+class CustomerPendingRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = SupplyItemRequest
+    template_name = 'supply_manager/customer_related/pending_customer_request.html'
+    context_object_name = 'pending_requests'
+    
+    def test_func(self):
+        return self.request.user.user_type == 'supply_manager'
+    
+    def get_queryset(self):
+        return SupplyItemRequest.objects.filter(
+            status='PENDING'
+        ).order_by('-request_date')
 #endregion Customer Views

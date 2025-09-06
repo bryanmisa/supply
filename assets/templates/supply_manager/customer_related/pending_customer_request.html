@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Pending Customer Supply Requests</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Request Date</th>
+                                <th>Customer Name</th>
+                                <th>Supply Item</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in pending_requests %}
+                                <tr>
+                                    <td>{{ request.request_date|date:"F d, Y H:i" }}</td>
+                                    <td>{{ request.customer.get_full_name }}</td>
+                                    <td>{{ request.supply_item.name }}</td>
+                                    <td>{{ request.quantity }}</td>
+                                    <td>
+                                        <span class="badge {% if request.status == 'PENDING' %}bg-warning
+                                                     {% elif request.status == 'APPROVED' %}bg-success
+                                                     {% elif request.status == 'REJECTED' %}bg-danger
+                                                     {% endif %}">
+                                            {{ request.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'supply:approve_request' request.id %}" class="btn btn-sm btn-success">Approve</a>
+                                        <a href="{% url 'supply:reject_request' request.id %}" class="btn btn-sm btn-danger">Reject</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    There are no pending customer supply requests at the moment.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock content %}

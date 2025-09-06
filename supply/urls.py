@@ -1,6 +1,7 @@
 from django.urls import path
 from supply import views
 from supply.views import (
+    CustomerPendingRequestListView,
     SupplyItemListView,
     SupplierProfileDetailView,
     SupplyItemTransactionListView,      
@@ -9,6 +10,8 @@ from supply.views import (
     CustomerSupplyRequestListView
 
 )
+
+app_name = 'supply'
 
 urlpatterns = [
     path('', views.home_page, name='home_page'),
@@ -32,21 +35,27 @@ urlpatterns = [
     
     # SupplyManager URLs
     path('supplymanager/login/', views.supply_manager_login, name='supplymanager_login'),
-    path('supply_manager/profile/update/', update_supply_manager_profile, name='update_supply_manager_profile'),
+    path('supplymanager/profile/update/', update_supply_manager_profile, name='update_supply_manager_profile'),
     path('supplymanager/register/', views.supply_manager_registration, name='supplymanager_registration'),
     #path('supply_manager/profile/', supply_manager_profile_detail, name='supply_manager_profile_detail'),
     path('supplymanager/profile/<pk>/', SupplyManagerProfileDetailView.as_view(), name='supplymanager_profile_detail'),
-    
+    path('supplymanager/supply-requests/pending/', 
+        CustomerPendingRequestListView.as_view(),
+        name='customer_pending_requests'),
+    path('supply-request/<int:pk>/approve/', views.approve_request, name='approve_request'),
+    path('supply-request/<int:pk>/reject/', views.reject_request, name='reject_request'),
+
     # Supply Item Transaction History
     path('supplyitem/transactions', SupplyItemTransactionListView.as_view(), name='supplyitem_transaction'),
     
     # Customer URLS
-     path('customer/login/', views.customer_login, name='customer_login'),
-     path('customer/register/', views.customer_registration, name='customer_registration'),
-     path('requestable-supply/', views.customer_requestable_supply, name='customer_requestable_supply'),
-     path('request-supply/<int:item_id>/', views.request_supply_item, name='request_supply_item'),
-     path('customer/supply-requests/', 
-         CustomerSupplyRequestListView.as_view(), 
-         name='customer_supply_request_list'),
-
+    path('customer/login/', views.customer_login, name='customer_login'),
+    path('customer/register/', views.customer_registration, name='customer_registration'),
+    path('requestable-supply/', views.customer_requestable_supply, name='customer_requestable_supply'),
+    path('request-supply/<int:item_id>/', views.request_supply_item, name='request_supply_item'),
+    path('customer/supply-requests/', 
+        CustomerSupplyRequestListView.as_view(), 
+        name='customer_supply_request_list'),
+    
+    path('transaction/<int:pk>/complete/', views.complete_transaction, name='complete_transaction'),
 ]

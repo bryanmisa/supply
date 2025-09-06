@@ -19,7 +19,7 @@
               <a href="#" id="profile-dropdown" data-toggle="dropdown"><i class="mdi mdi-dots-vertical"></i></a>
               <div class="dropdown-menu dropdown-menu-right sidebar-dropdown preview-list" aria-labelledby="profile-dropdown">
           {% if request.user.user_type == 'supply_manager' %}
-              <a href="{% url 'update_supply_manager_profile' %}" class="dropdown-item preview-item">
+              <a href="{% url 'supply:update_supply_manager_profile' %}" class="dropdown-item preview-item">
                 <div class="preview-thumbnail">
                   <div class="preview-icon bg-dark rounded-circle">
                     <i class="mdi mdi-settings text-primary"></i>
@@ -68,7 +68,7 @@
               </div>
               
                 {% if user.is_authenticated %}
-                <a href="{% url 'logout' %}" class="dropdown-item preview-item">
+                <a href="{% url 'supply:logout' %}" class="dropdown-item preview-item">
                   <div class="preview-thumbnail">
                     <div class="preview-icon bg-dark rounded-circle">
                       <i class="mdi mdi-logout text-success"></i>

@@ -35,13 +35,13 @@
                 <div class="card">
                     <h2>Supply Manager</h2>
                     <p>Manage your supplies here.</p>
-                    <a href="{% url 'supplymanager_login' %}" class="btn btn-supply-manager">Login</a>
+                    <a href="{% url 'supply:supplymanager_login' %}" class="btn btn-supply-manager">Login</a>
                 </div>
 
                 <div class="card">
                     <h2>Supplier</h2>
                     <p>If you are a supplier. Please login from here.</p>
-                    <a href="{% url 'supplier_login' %}" class="btn btn-supplier">Login</a>
+                    <a href="{% url 'supply:supplier_login' %}" class="btn btn-supplier">Login</a>
                 </div>
                
                 <div class="card">
@@ -53,7 +53,7 @@
                 <div class="card">
                     <h2>Customer</h2>
                     <p>Manage your customer account</p>
-                    <a href="{% url "customer_login" %}" class="btn btn-customer">Login</a>
+                    <a href="{% url "supply:customer_login" %}" class="btn btn-customer">Login</a>
                 </div>
             </div>
           </div>

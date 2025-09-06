@@ -7,7 +7,7 @@
         <div class="card-header bg-primary text-white">
             <h4 class="card-title">Supply Items</h4>
             <div class="text-right">
-                <a class="btn btn-success float-left" href="{% url 'create_supply_item' %}">+ Create New Supply</a>
+                <a class="btn btn-success float-left" href="{% url 'supply:create_supply_item' %}">+ Create New Supply</a>
             </div>
         </div>
         <div class="card-body">
@@ -28,7 +28,7 @@
                         {% for item in supply_items %}
                         <tr>
                             <td>{{ item.item_id }}</td>
-                            <td><a href="{% url "supplyitem_detail" item.id %}">{{ item.name }}</a></td>
+                            <td><a href="{% url "supply:supplyitem_detail" item.id %}">{{ item.name }}</a></td>
                             <td>{{ item.category }}</td>
                             <td>${{ item.unit_cost|floatformat:2 }}</td>
                              <td>{{ item.quantity }}</td>
@@ -65,7 +65,7 @@
                                         </button>
                                     </div>
                                     <div class="modal-body">
-                                        <form method="post" action="{% url 'edit_supply_item' item.id %}">
+                                        <form method="post" action="{% url 'supply:edit_supply_item' item.id %}">
                                             {% csrf_token %}
                                             {{ forms|get_item:item.id }}
                                             <div class="text-right">
