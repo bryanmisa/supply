@@ -168,6 +168,9 @@ class SupplyItemRequest(models.Model):
         choices=[
             ('PENDING', 'Pending'),
             ('APPROVED', 'Approved'),
+            ('FOR DELIVERY', 'For Delivery'),
+            ('FOR RETURN', 'For Return'),
+            ('COMPLETED', 'Completed'),
             ('REJECTED', 'Rejected')
         ],
         default='PENDING'
