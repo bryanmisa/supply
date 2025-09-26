@@ -130,7 +130,7 @@ def edit_supply_item(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "Supply item updated successfully!")
-            return redirect('supplyitem_list')
+            return redirect('supply:supplyitem_list')
     else:
         form = SupplyItemForm(instance=item)
     return render(request, 'supply/supplyitem_edit.html', {'form': form, 'item': item})
@@ -153,7 +153,7 @@ def supplier_registration(request):
             supplier_profile = supplier_form.save(commit=False)
             supplier_profile.user = user
             supplier_profile.save()
-            return redirect('supplyitem_list')  # Redirect to a success page
+            return redirect('supply:supplyitem_list')  # Redirect to a success page
         
     else:
         user_form = UserProfileForm()
@@ -176,10 +176,10 @@ def supplier_login(request):
                         supplier_profile = user.supplierprofile
                     except ObjectDoesNotExist:
                         messages.error(request, "Your profile is incomplete. Please contact support.")
-                        return redirect('supplier_registration')  # Redirect to registration or profile creation page
+                        return redirect('supply:supplier_registration')  # Redirect to registration or profile creation page
 
                     login(request, user)
-                    return redirect('supplier_choose_items')  # Redirect to the supplier dashboard
+                    return redirect('supply:supplier_choose_items')  # Redirect to the supplier dashboard
                 else:
                     messages.error(request, "You are not authorized to log in as a supplier.")
             else:
@@ -228,7 +228,7 @@ def supplier_choose_items(request):
             # Add them to the existing set instead of replacing
             supplier_profile.supply_items.add(*new_items)
 
-            return redirect('supplier_profile_detail', pk=supplier_profile.pk)
+            return redirect('supply:supplier_profile_detail', pk=supplier_profile.pk)
     else:
         form = SupplierSupplyItemsForm(instance=supplier_profile)
         # Show only items not already selected
@@ -252,7 +252,7 @@ def supplier_remove_items(request):
         items_to_remove = request.POST.getlist('remove_items')
         supplier_profile.supply_items.remove(*items_to_remove)  # Remove them
 
-        return redirect('supplier_profile_detail', pk=supplier_profile.pk)
+        return redirect('supply:supplier_profile_detail', pk=supplier_profile.pk)
 
     return render(
         request,
@@ -280,7 +280,7 @@ def supplyitem_transaction_deliver(request, pk):
             # The quantity is already set by the form, and the model's save() method handles the update
             transaction.save()
 
-            return redirect('supplyitem_detail', pk=supply_item.pk)
+            return redirect('supply:supplyitem_detail', pk=supply_item.pk)
     else:
         form = SupplyItemTransactionForm()
 
@@ -304,7 +304,7 @@ def supplyitem_transaction_receive(request, pk):
             # The quantity is already set by the form, so we just need to save
             transaction.save()
 
-            return redirect('supplyitem_detail', pk=supply_item.pk)
+            return redirect('supply:supplyitem_detail', pk=supply_item.pk)
     else:
         form = SupplyItemTransactionForm()
 
@@ -384,7 +384,7 @@ def supply_manager_registration(request):
             supply_manager_profile = supply_manager_form.save(commit=False)
             supply_manager_profile.user = user
             supply_manager_profile.save()
-            return redirect('supplyitem_list')  # Redirect to a success page
+            return redirect('supply:supplyitem_list')  # Redirect to a success page
         
     else:
         user_form = UserProfileForm()
@@ -405,7 +405,7 @@ def update_supply_manager_profile(request):
             supply_manager_profile = form.save(commit=False)
             supply_manager_profile.user = request.user
             supply_manager_profile.save()
-            return redirect('supply:supplymanager_profile_detail', pk=supply_manager_profile.pk)  # Redirect to the profile detail page
+            return redirect('supply:supply_manager_profile_detail')  # Redirect to the profile detail page
     else:
         form = SupplyManagerProfileForm(instance=profile)
 
@@ -429,7 +429,7 @@ class SupplyManagerProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, Up
     model = SupplyManagerProfile
     form_class = SupplyManagerProfileForm
     template_name = 'supply_manager/update_supply_manager_profile.html'
-    success_url = reverse_lazy('supply_manager_profile_detail')
+    success_url = reverse_lazy('supply:supply_manager_profile_detail')
 
     def test_func(self):
         return self.request.user.user_type == 'supply_manager'
@@ -609,6 +609,7 @@ def request_supply_item(request, item_id):
         # Validate quantity
         if requested_quantity <= 0:
             messages.error(request, "Please enter a valid quantity.")
+
             return redirect('supply:customer_requestable_supply')
             
         if requested_quantity > supply_item.quantity:

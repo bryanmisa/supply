@@ -171,11 +171,12 @@ class SupplyItemRequest(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ('PROCESSING', 'Processing'),
+            ('PENDING', 'Pending'),
+            ('APPROVED', 'Approved'),
+            ('FOR DELIVERY', 'For Delivery'),
+            ('FOR RETURN', 'For Return'),
             ('COMPLETED', 'Completed'),
-            ('REJECTED', 'Rejected'),
-            ('FOR_DELIVERY', 'For Delivery'),
-            ('DELIVERED', 'Delivered'),
+            ('REJECTED', 'Rejected')
         ],
         default='PENDING'
     )
