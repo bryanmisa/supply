@@ -53,3 +53,18 @@ def handle_supply_request(sender, instance, created, **kwargs):
         # Update the available quantity
         instance.supply_item.quantity -= instance.quantity
         instance.supply_item.save()
+        
+@receiver(post_save, sender=SupplyItemTransaction)
+def sync_request_status_with_transaction(sender, instance, **kwargs):
+    allowed_status = ['PROCESSING', 'COMPLETED', 'REJECTED', 'FOR_DELIVERY', 'DELIVERED']
+    if instance.status in allowed_status:
+        # Find all matching requests
+        requests = SupplyItemRequest.objects.filter(
+            supply_item=instance.supply_item,
+            customer=instance.customer,
+            quantity=instance.quantity,
+        )
+        for request in requests:
+            if request.status != instance.status:
+                request.status = instance.status
+                request.save()

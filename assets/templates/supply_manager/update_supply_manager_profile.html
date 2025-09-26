@@ -51,7 +51,7 @@
                 </div>
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
-                    <a href="{% url 'supply_manager_profile_detail' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                    <a href="{% url 'supply:supplymanager_profile_detail' form.instance.pk %}" class="btn btn-secondary btn-lg">Cancel</a>
                 </div>
             </form>
         </div>

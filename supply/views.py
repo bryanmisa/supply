@@ -69,7 +69,7 @@ def logout_user(request):
     logout(request)
     storage = messages.get_messages(request)
     storage.used = True  # Clears all queued messages   
-    return redirect('home_page') 
+    return redirect('supply:home_page') 
 
 def access_denied(request):
     return render(request, 'errors/access_denied.html')
@@ -405,7 +405,7 @@ def update_supply_manager_profile(request):
             supply_manager_profile = form.save(commit=False)
             supply_manager_profile.user = request.user
             supply_manager_profile.save()
-            return redirect('supply_manager_profile_detail')  # Redirect to the profile detail page
+            return redirect('supply:supplymanager_profile_detail', pk=supply_manager_profile.pk)  # Redirect to the profile detail page
     else:
         form = SupplyManagerProfileForm(instance=profile)
 
@@ -445,7 +445,7 @@ class SupplyManagerProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, Up
 def approve_request(request, pk):
     """Approve a supply request and update transaction"""
     supply_request = get_object_or_404(SupplyItemRequest, pk=pk)
-    
+
     if supply_request.status != 'PENDING':
         messages.error(request, "This request cannot be approved because it's not in pending status.")
         return redirect('supply:customer_pending_requests')
@@ -544,10 +544,10 @@ def customer_login(request):
                         customer_profile = user.customerprofile
                     except ObjectDoesNotExist:
                         messages.error(request, "Your profile is incomplete. Please contact support.")
-                        return redirect('customer_registration')
+                        return redirect('supply:customer_registration')
 
                     login(request, user)
-                    return redirect('customer_requestable_supply')
+                    return redirect('supply:customer_requestable_supply')
                 else:
                     messages.error(request, "You are not authorized to log in as a customer.")
             else:
@@ -573,7 +573,7 @@ def customer_registration(request):
             customer_profile.save()
             
             messages.success(request, "Registration successful. Please login.")
-            return redirect('customer_login')
+            return redirect('supply:customer_login')
     else:
         user_form = UserProfileForm()
         customer_form = CustomerProfileForm()
@@ -609,11 +609,11 @@ def request_supply_item(request, item_id):
         # Validate quantity
         if requested_quantity <= 0:
             messages.error(request, "Please enter a valid quantity.")
-            return redirect('customer_requestable_supply')
+            return redirect('supply:customer_requestable_supply')
             
         if requested_quantity > supply_item.quantity:
             messages.error(request, "Requested quantity exceeds available stock.")
-            return redirect('customer_requestable_supply')
+            return redirect('supply:customer_requestable_supply')
             
         # Create the supply request
         SupplyItemRequest.objects.create(
@@ -624,9 +624,9 @@ def request_supply_item(request, item_id):
         )
         
         messages.success(request, "Supply request submitted successfully.")
-        return redirect('customer_requestable_supply')
+        return redirect('supply:customer_requestable_supply')
         
-    return redirect('customer_requestable_supply')
+    return redirect('supply:customer_requestable_supply')
 
 class CustomerSupplyRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = SupplyItemRequest
@@ -653,4 +653,6 @@ class CustomerPendingRequestListView(LoginRequiredMixin, UserPassesTestMixin, Li
         return SupplyItemRequest.objects.filter(
             status='PENDING'
         ).order_by('-request_date')
+        
+
 #endregion Customer Views

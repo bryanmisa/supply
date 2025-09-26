@@ -96,9 +96,9 @@ class CustomerProfile(models.Model):
 class SupplyItem(models.Model):
 
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('discontinued', 'Discontinued'),
+        ('ACTIVE', 'Active'),
+        ('INACTIVE', 'Inactive'),
+        ('DISCONTINUED', 'Discontinued'),
     ]
 
     item_id = models.CharField(max_length=100, unique=True)  # SKU or barcode
@@ -132,16 +132,21 @@ class SupplyItem(models.Model):
 # ---------------------------------------------------------
 class SupplyItemTransaction(models.Model):
     TRANSACTION_TYPES = [
-        ('REQUESTED', 'Requested'),   # requested by customer
-        ('DELIVERY', 'Delivery'), # delivery from supplier to supply manager
-        ('RETURN', 'Return')      # returned by customer to supply manager or supply manager to supplier
+        ('REQUESTED', 'Requested'), # requested by customer
+        ('DELIVERY', 'Delivery'),   # delivery from supplier to supply manager
+        ('RETURN', 'Return'),       # returned by customer to supply manager or supply manager to supplier
     ]
     
     TRANSACTION_STATUS = [
         ('NEW', 'New Request'),
+        ('PENDING', 'Pending'),
         ('PROCESSING', 'Processing'),
         ('COMPLETED', 'Completed'),
-        ('CANCELLED', 'Cancelled')
+        ('CANCELLED', 'Cancelled'),
+        ('FOR_DELIVERY', 'For Delivery'),
+        ('DELIVERED', 'Delivered'),
+        ('RETURNED', 'Returned'),
+        ('REJECTED', 'Rejected'),
     ]
 
     supply_item = models.ForeignKey(SupplyItem, on_delete=models.CASCADE)
@@ -166,9 +171,11 @@ class SupplyItemRequest(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ('PENDING', 'Pending'),
-            ('APPROVED', 'Approved'),
-            ('REJECTED', 'Rejected')
+            ('PROCESSING', 'Processing'),
+            ('COMPLETED', 'Completed'),
+            ('REJECTED', 'Rejected'),
+            ('FOR_DELIVERY', 'For Delivery'),
+            ('DELIVERED', 'Delivered'),
         ],
         default='PENDING'
     )

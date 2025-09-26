@@ -19,7 +19,7 @@
                 <div class="modal fade" id="requestModal{{ item.id }}" tabindex="-1" aria-labelledby="requestModalLabel{{ item.id }}" aria-hidden="true">
                   <div class="modal-dialog">
                     <div class="modal-content">
-                      <form method="post" action="{% url 'request_supply_item' item.id %}">
+                      <form method="post" action="{% url 'supply:request_supply_item' item.id %}">
                         {% csrf_token %}
                         <div class="modal-header">
                           <h5 class="modal-title" id="requestModalLabel{{ item.id }}">Request {{ item.name }}</h5>
